@@ -1,0 +1,38 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://${SERVER_IP:-localhost}:8000/api/v1
+    depends_on:
+      - backend
+    networks:
+      - yiran-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/yiran_huanxin.db
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key}
+      - ALLOWED_ORIGINS=http://${SERVER_IP:-localhost}:3000,http://localhost:3000
+    volumes:
+      - sqlite-data:/app/data
+    networks:
+      - yiran-network
+    restart: unless-stopped
+
+volumes:
+  sqlite-data:
+
+networks:
+  yiran-network:
+    driver: bridge
